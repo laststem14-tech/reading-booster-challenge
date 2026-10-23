@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Booster High-School English Activity Platform</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Noto Sans KR', 'sans-serif'],
+                    },
+                    colors: {
+                        pastelSky: '#E0F2FE',
+                        pastelEmerald: '#D1FAE5',
+                        pastelPurple: '#EDE9FE',
+                        brandBlue: '#0284C7',
+                        brandEmerald: '#059669',
+                        brandPurple: '#7C3AED',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #e0f2fe 0%, #ede9fe 50%, #d1fae5 100%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+        }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .glass-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .chunk-box {
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Pulse animation for active timer */
+        @keyframes pulse-fast {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .timer-warning {
+            animation: pulse-fast 0.6s infinite;
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body class="font-sans text-slate-800 antialiased selection:bg-purple-200">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 w-full glass-card border-b border-white/40 px-4 py-3 sm:px-8">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="goHome()">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-400 to-purple-500 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-sky-600 to-purple-600 bg-clip-text text-transparent">Reading Booster</h1>
+                    <p class="text-xs text-slate-500 font-medium">고난도 모의고사 31번~40번 챌린지</p>
+                </div>
+            </div>
+
+            <!-- Student Info & BGM Controls -->
+            <div class="flex items-center gap-3">
+                <button id="bgmToggleBtn" onclick="toggleBGM()" class="glass-btn px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 text-slate-700 shadow-sm">
+                    <i id="bgmIcon" class="fa-solid fa-music text-purple-500"></i>
+                    <span id="bgmText">BGM ON</span>
+                </button>
+                <button onclick="openDashboard()" class="glass-btn px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 text-slate-700 shadow-sm">
+                    <i class="fa-solid fa-chart-line text-emerald-500"></i>
+                    <span class="hidden sm:inline">교사 대시보드</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6">
+
+        <!-- User Registration Modal / Banner -->
+        <div id="userModal" class="mb-6 glass-card p-5 rounded-3xl border border-white/60">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-base text-slate-800">학습자 등록</h2>
+                        <p class="text-xs text-slate-500">성적 기록 및 구글 클래스룸 제출을 위해 학번과 이름을 입력하세요.</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <input type="text" id="studentId" placeholder="학번 (예: 20101)" class="px-4 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white/80 w-full sm:w-32">
+                    <input type="text" id="studentName" placeholder="이름 (예: 홍길동)" class="px-4 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white/80 w-full sm:w-32">
+                    <button onclick="saveUserInfo()" class="w-full sm:w-auto px-5 py-2 bg-gradient-to-r from-sky-500 to-purple-600 text-white text-sm font-bold rounded-xl shadow-md hover:opacity-95 transition">
+                        등록 완료
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Info Bar (After Login) -->
+        <div id="userInfoBar" class="hidden mb-6 glass-card px-6 py-3 rounded-2xl flex items-center justify-between border border-white/60">
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full" id="displayStudentId"></span>
+                <span class="font-bold text-slate-800 text-sm" id="displayStudentName"></span>
+                <span class="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">학습 진행 중</span>
+            </div>
+            <button onclick="editUserInfo()" class="text-xs text-slate-400 hover:text-slate-600 underline">정보 수정</button>
+        </div>
+
+        <!-- Section 1: Passage Selection Screen -->
+        <div id="selectionScreen" class="space-y-6">
+            <div class="text-center space-y-2 my-4">
+                <span class="px-4 py-1.5 bg-sky-100 text-sky-700 font-bold text-xs rounded-full">31번 ~ 40번 지문 선택</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">4단계 단계별 독해 챌린지</h2>
+                <p class="text-sm text-slate-600 max-w-xl mx-auto">어휘 타임어택 ➔ 독해 문제 ➔ 수능형 요약 ➔ 문장 구획(Chunking) 드래그앤드롭 순서로 학습합니다.</p>
+            </div>
+
+            <!-- Passage Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="passageGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <!-- Section 2: Stage Activity Screen -->
+        <div id="activityScreen" class="hidden space-y-6">
+            <!-- Navigation Header for Stages -->
+            <div class="glass-card p-4 rounded-3xl flex flex-wrap items-center justify-between gap-4 border border-white/60">
+                <div class="flex items-center gap-3">
+                    <button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white text-slate-600 flex items-center justify-center hover:bg-slate-100 shadow-sm">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <span id="activePassageTitle" class="font-extrabold text-slate-800 text-base">지문 31번</span>
+                        <div class="flex items-center gap-1 text-xs text-slate-500">
+                            <span id="stageBadge" class="font-semibold text-purple-600">Stage 1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage Progress Indicators -->
+                <div class="flex items-center gap-1 sm:gap-2">
+                    <div id="stageIndicator1" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-sm">1. 어휘</div>
+                    <div id="stageIndicator2" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/60 text-slate-400">2. 독해</div>
+                    <div id="stageIndicator3" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/60 text-slate-400">3. 요약</div>
+                    <div id="stageIndicator4" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/60 text-slate-400">4. 청킹</div>
+                </div>
+
+                <!-- Timer Display -->
+                <div id="timerContainer" class="flex items-center gap-2 bg-white/80 px-4 py-1.5 rounded-xl border border-slate-200">
+                    <i class="fa-regular fa-clock text-rose-500"></i>
+                    <span id="timerText" class="font-mono font-bold text-sm text-slate-700">00:00</span>
+                </div>
+            </div>
+
+            <!-- Stage 1 View: Vocabulary Time Attack -->
+            <div id="stage1View" class="hidden space-y-4">
+                <div class="glass-card p-6 sm:p-8 rounded-3xl space-y-6 border border-white/80">
+                    <div class="flex justify-between items-center border-b border-slate-200/60 pb-4">
+                        <div>
+                            <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Stage 1 • 어휘 10초 타임어택</span>
+                            <h3 class="text-xl font-bold text-slate-800">단어의 올바른 뜻을 고르세요</h3>
+                        </div>
+                        <span id="s1Progress" class="text-sm font-bold text-slate-500">1 / 8</span>
+                    </div>
+
+                    <div class="text-center py-6 space-y-4">
+                        <div class="inline-flex items-center justify-center gap-3">
+                            <h2 id="s1Word" class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-wide">Infectious</h2>
+                            <button onclick="speakWord()" class="w-10 h-10 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-700 flex items-center justify-center transition shadow-sm">
+                                <i class="fa-solid fa-volume-high text-lg"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-400">원어민 발음 버튼을 눌러 음성을 들을 수 있습니다.</p>
+                    </div>
+
+                    <!-- Options Grid -->
+                    <div id="s1Options" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Dynamic Buttons -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 2 View: Passage Reading & Quiz -->
+            <div id="stage2View" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left: Passage Text -->
+                <div class="lg:col-span-6 glass-card p-6 rounded-3xl border border-white/80 space-y-3 max-h-[600px] overflow-y-auto">
+                    <div class="flex items-center justify-between sticky top-0 bg-white/90 p-2 rounded-xl border border-slate-100 shadow-sm">
+                        <span class="text-xs font-bold text-emerald-600"><i class="fa-solid fa-book-open mr-1"></i>지문 원문</span>
+                        <span class="text-xs text-slate-400">제한시간 5분</span>
+                    </div>
+                    <div id="s2PassageContent" class="text-sm leading-relaxed text-slate-700 space-y-3 font-normal">
+                        <!-- Passage inserted here -->
+                    </div>
+                </div>
+
+                <!-- Right: 3 Comprehension Questions -->
+                <div class="lg:col-span-6 space-y-4">
+                    <div class="glass-card p-6 rounded-3xl border border-white/80 space-y-5">
+                        <div class="flex justify-between items-center border-b border-slate-200/60 pb-3">
+                            <span class="text-xs font-bold text-emerald-600 uppercase">Stage 2 • 독해 및 내용 파악</span>
+                            <span id="s2QuizProgress" class="text-xs font-bold text-slate-500">문제 1 / 3</span>
+                        </div>
+
+                        <div id="s2QuizContainer" class="space-y-4">
+                            <h4 id="s2QuestionText" class="font-bold text-slate-800 text-base">질문 내용</h4>
+                            <div id="s2Options" class="space-y-2">
+                                <!-- Options -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 3 View: Paragraph Summary Blank Fill -->
+            <div id="stage3View" class="hidden space-y-4">
+                <div class="glass-card p-6 sm:p-8 rounded-3xl border border-white/80 space-y-6">
+                    <div class="border-b border-slate-200/60 pb-3">
+                        <span class="text-xs font-bold text-purple-600 uppercase tracking-wider">Stage 3 • 수능형 지문 요약 빈칸 완성</span>
+                        <h3 class="text-lg font-bold text-slate-800 mt-1">지문의 핵심 내용을 요약한 문장의 빈칸 (A), (B)에 들어갈 적절한 어휘를 고르세요.</h3>
+                    </div>
+
+                    <!-- Summary Box -->
+                    <div class="bg-white/80 p-6 rounded-2xl border border-purple-100 shadow-sm space-y-3">
+                        <p id="s3SummaryText" class="text-base sm:text-lg leading-relaxed text-slate-800 font-medium">
+                            <!-- Summary text with (A) and (B) -->
+                        </p>
+                    </div>
+
+                    <!-- Options -->
+                    <div id="s3Options" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Dynamic Choices -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 4 View: Short Chunking Drag & Drop -->
+            <div id="stage4View" class="hidden space-y-4">
+                <div class="glass-card p-6 sm:p-8 rounded-3xl border border-white/80 space-y-6">
+                    <div class="flex justify-between items-center border-b border-slate-200/60 pb-3">
+                        <div>
+                            <span class="text-xs font-bold text-rose-500 uppercase tracking-wider">Stage 4 • 고난도 문장 Chunking 구획 배결</span>
+                            <h3 class="text-lg font-bold text-slate-800 mt-1">짧은 청크(Chunk) 단위를 순서대로 클릭/배치하여 완성하세요.</h3>
+                        </div>
+                        <span id="s4Attempts" class="text-xs font-bold px-3 py-1 bg-rose-100 text-rose-600 rounded-full">시도 1/3</span>
+                    </div>
+
+                    <!-- Korean Translation Reference -->
+                    <div class="bg-amber-50/80 p-4 rounded-2xl border border-amber-200/70">
+                        <span class="text-xs font-bold text-amber-700 block mb-1"><i class="fa-solid fa-language mr-1"></i>우리말 해석 참조:</span>
+                        <p id="s4KoreanTranslation" class="text-sm font-medium text-amber-900 leading-relaxed"></p>
+                    </div>
+
+                    <!-- Target Drop Zone -->
+                    <div class="space-y-2">
+                        <span class="text-xs font-bold text-slate-500">배치 영역 (클릭하거나 드래그하여 완성):</span>
+                        <div id="s4DropZone" class="min-h-[80px] p-4 bg-white/90 rounded-2xl border-2 border-dashed border-purple-300 flex flex-wrap gap-2 items-center transition-all">
+                            <span class="text-xs text-slate-400 italic" id="s4Placeholder">아래 청크들을 순서대로 클릭하세요...</span>
+                        </div>
+                    </div>
+
+                    <!-- Available Chunks Source Zone -->
+                    <div class="space-y-2">
+                        <span class="text-xs font-bold text-slate-500">제공된 청크 조각:</span>
+                        <div id="s4SourceZone" class="flex flex-wrap gap-2 p-4 bg-slate-50/80 rounded-2xl border border-slate-200">
+                            <!-- Dynamic Chunks -->
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button onclick="resetStage4()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-bold rounded-xl transition">
+                            <i class="fa-solid fa-rotate-right mr-1"></i>초기화
+                        </button>
+                        <button onclick="checkStage4()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-xl shadow-md transition">
+                            정답 확인
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Section 3: Teacher Dashboard & Google Classroom Sync -->
+        <div id="dashboardScreen" class="hidden space-y-6">
+            <div class="glass-card p-6 sm:p-8 rounded-3xl border border-white/80 space-y-6">
+                <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-200 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-slate-800">교사 모니터링 대시보드</h2>
+                        <p class="text-xs text-slate-500">실시간 학생별 Stage 완료 상태 및 점수를 모니터링합니다.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="exportCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-file-csv"></i> CSV 성적 내보내기
+                        </button>
+                        <button onclick="shareGoogleClassroom()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-2">
+                            <i class="fa-brands fa-google"></i> Google Classroom 공유
+                        </button>
+                        <button onclick="goHome()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
+                            돌아가기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Student Score Table -->
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white/70">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-100/80 text-slate-600 font-bold uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">학번</th>
+                                <th class="p-3">이름</th>
+                                <th class="p-3">지문</th>
+                                <th class="p-3 text-center">Stage 1 (어휘)</th>
+                                <th class="p-3 text-center">Stage 2 (독해)</th>
+                                <th class="p-3 text-center">Stage 3 (요약)</th>
+                                <th class="p-3 text-center">Stage 4 (청킹)</th>
+                                <th class="p-3 text-center">총점</th>
+                                <th class="p-3 text-center">완료 시간</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboardTableBody" class="divide-y divide-slate-200">
+                            <!-- Rows injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Toast Notification Overlay -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-5 py-3 rounded-2xl shadow-xl font-bold text-sm flex items-center gap-3">
+        <i id="toastIcon" class="fa-solid"></i>
+        <span id="toastMsg">알림 메시지</span>
+    </div>
+
+    <!-- AUDIO SYNTHESIS & APP LOGIC -->
+    <script>
+        /* ------------------------------------------------------------------
+           DATA SOURCE: PASSAGES 31 TO 40 WITH FULL ACTIVITIES
+        ------------------------------------------------------------------ */
+        const passageData = [
+            {
+                id: 31,
+                fullText: `One major threat to survival throughout human history has been infectious disease. To minimize the risk of infection, humans evolved emotional and behavioral responses aimed at avoiding potential sources of pathogens. One such response is disgust, a powerful emotion that motivates people to stay away from contaminated objects, spoiled food, or bodily fluids. Disgust serves as part of a broader behavioral immune system, which acts to prevent disease before it enters the body. Unlike the biological immune system that fights infections internally, the behavioral immune system operates through perception and action. By feeling disgusted by things associated with disease, individuals reduce their exposure to harmful agents. This emotional system, however, is not perfect; it sometimes overgeneralizes and triggers avoidance in situations where there is little real danger. Such false alarms may seem inefficient, but they reflect an evolutionary strategy that favors caution over omission when survival is at stake.`,
+                vocab: [
+                    { word: "infectious", meaning: "전염성의, 감염되는", options: ["전염성의, 감염되는", "독성의", "치명적인", "유전적인"] },
+                    { word: "pathogen", meaning: "병원체, 병원균", options: ["병원체, 병원균", "항체", "백신", "세포"] },
+                    { word: "disgust", meaning: "혐오감, 메스꺼움", options: ["혐오감, 메스꺼움", "호기심", "동정심", "자부심"] },
+                    { word: "contaminate", meaning: "오염시키다", options: ["오염시키다", "정화하다", "보존하다", "파괴하다"] },
+                    { word: "immune", meaning: "면역의, 면제된", options: ["면역의, 면제된", "취약한", "위험한", "급성의"] },
+                    { word: "perception", meaning: "지각, 인지", options: ["지각, 인지", "상상, 환상", "망각", "추론"] },
+                    { word: "overgeneralize", meaning: "지나치게 일반화하다", options: ["지나치게 일반화하다", "과소평가하다", "단순화하다", "우회하다"] },
+                    { word: "caution", meaning: "조심, 경계", options: ["조심, 경계", "무모함", "효율성", "과감함"] }
+                ],
+                quiz: [
+                    {
+                        q: "인간이 진화 과정에서 '혐오(disgust)'라는 감정을 발전시킨 주요 목적은 무엇인가?",
+                        options: ["타인과의 경쟁에서 우위를 점하기 위해", "병원균 및 감염원과의 접촉을 피하기 위해", "영양가가 높은 음식을 선별하기 위해", "생물학적 면역 반응을 촉진하기 위해"],
+                        ans: 1
+                    },
+                    {
+                        q: "행동적 면역 체계(behavioral immune system)의 특징으로 알맞은 것은?",
+                        options: ["체내에서 병원균과 직접 싸운다.", "지각과 행동을 통해 사전에 질병을 예방한다.", "실제 위험이 없으면 절대로 작동하지 않는다.", "유전되지 않는 후천적 능력이다."],
+                        ans: 1
+                    },
+                    {
+                        q: "글의 마지막 부분에서 'false alarms(오류 경보)'가 생기는 진화적 이유는 무엇인가?",
+                        options: ["효율성을 극대화하기 위해서", "생존을 위해 미연의 방지(주의)를 더 중시해서", "생물학적 면역계가 마비되었을 때를 대비해서", "사회적 유대감을 강화하기 위해서"],
+                        ans: 1
+                    }
+                ],
+                summaryTask: {
+                    text: "Human evolution developed a behavioral immune system through emotions like disgust to avoid pathogens, adopting a strategy that prioritizes (A)___________ over (B)___________ when survival is threatened.",
+                    options: [
+                        { text: "(A) caution  -  (B) omission", isCorrect: true },
+                        { text: "(A) efficiency  -  (B) caution", isCorrect: false },
+                        { text: "(A) rejection  -  (B) optimism", isCorrect: false },
+                        { text: "(A) caution  -  (B) efficiency", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "이러한 오류 경보는 비효율적으로 보일 수 있지만, 생존이 걸려 있을 때 생략보다 주의를 선호하는 진화적 전략을 반영한다.",
+                    chunks: ["Such false alarms", "may seem inefficient,", "but they reflect", "an evolutionary strategy", "that favors caution", "over omission", "when survival is at stake."],
+                    correctOrder: [0, 1, 2, 3, 4, 5, 6]
+                }
+            },
+            {
+                id: 32,
+                fullText: `When it comes to bad bosses, second only to the abusive cruel boss is the manager who tries to please everyone. These leaders falsely believe that if they can just get all of their people to like them, then things will be okay. They lack the courage to make hard decisions and face their people with bad news because they fear disappointing anyone. Leaders who actively work to get their people to like them usually end up building shallow relationships with their people with special favors and false promises. Because they use gimmicks to manipulate people, they create no real loyalty and end up self-destructing when their little house of cards begins to fall.`,
+                vocab: [
+                    { word: "abusive", meaning: "학대하는, 남용하는", options: ["학대하는, 남용하는", "친절한", "유능한", "솔직한"] },
+                    { word: "falsely", meaning: "잘못하여, 거짓으로", options: ["잘못하여, 거짓으로", "정확히", "확실히", "공정하게"] },
+                    { word: "courage", meaning: "용기, 배짱", options: ["용기, 배짱", "두려움", "지혜", "분노"] },
+                    { word: "shallow", meaning: "피상적인, 얕은", options: ["피상적인, 얕은", "깊이있는", "진실된", "강렬한"] },
+                    { word: "favor", meaning: "호의, 특별한 혜택", options: ["호의, 특별한 혜택", "거절", "비난", "경고"] },
+                    { word: "gimmick", meaning: "술책, 꼼수", options: ["술책, 꼼수", "원칙", "진심", "전략"] },
+                    { word: "manipulate", meaning: "조종하다, 조작하다", options: ["조종하다, 조작하다", "존중하다", "방치하다", "협력하다"] },
+                    { word: "self-destruct", meaning: "자멸하다", options: ["자멸하다", "성공하다", "성장하다", "단합하다"] }
+                ],
+                quiz: [
+                    {
+                        q: "필자가 언급한 '모두를 기쁘게 하려는 리더'의 치명적 약점은 무엇인가?",
+                        options: ["부하 직원들에게 일을 너무 많이 시킨다.", "실망을 주기 싫어 어려운 결정이나 나쁜 소식을 피한다.", "직원들의 말을 전혀 듣지 않는다.", "지나치게 솔직하여 상처를 준다."],
+                        ans: 1
+                    },
+                    {
+                        q: "이러한 리더들이 부하 직원들과 맺는 관계의 특성은?",
+                        options: ["깊은 신뢰와 충성심에 기반한다.", "특별한 혜택과 거짓 약속에 기반한 피상적 관계이다.", "엄격한 규율로 묶인 공적인 관계이다.", "지속적이고 견고한 협력 관계이다."],
+                        ans: 1
+                    },
+                    {
+                        q: "본문에서 'house of cards(사상루각)'가 의미하는 바는?",
+                        options: ["꼼수와 조종으로 만든 위태롭고 허술한 조직 신뢰 구조", "경영진의 견고한 사옥", "치밀하게 계획된 사업 전략", "직원들이 공유하는 공통 목표"],
+                        ans: 0
+                    }
+                ],
+                summaryTask: {
+                    text: "Leaders who constantly try to please everyone fail because they rely on (A)___________ rather than genuine courage, leading to (B)___________ relationships and lack of real loyalty.",
+                    options: [
+                        { text: "(A) gimmicks  -  (B) shallow", isCorrect: true },
+                        { text: "(A) courage  -  (B) deep", isCorrect: false },
+                        { text: "(A) favors  -  (B) sustainable", isCorrect: false },
+                        { text: "(A) rules  -  (B) temporary", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "모든 사람이 자신을 좋아하도록 적극적으로 노력하는 리더들은 보통 특별한 혜택과 거짓 약속으로 피상적인 관계를 맺게 된다.",
+                    chunks: ["Leaders who actively work", "to get their people to like them", "usually end up building", "shallow relationships", "with their people", "with special favors", "and false promises."],
+                    correctOrder: [0, 1, 2, 3, 4, 5, 6]
+                }
+            },
+            {
+                id: 33,
+                fullText: `Acquiring new customers is one of the most expensive tasks in marketing. It often requires large investments in advertising, promotional incentives, and sales efforts. Despite the appeal of winning over new buyers, marketers should first consider how to improve profitability using existing resources. One effective strategy is to build deeper relationships with current customers. This not only reduces customer acquisition costs but also increases overall customer value. Returning customers tend to spend more over time, are easier to serve, and may advocate for the brand, reducing the need for constant promotional spending. For example, satisfied customers are more likely to respond to cross-selling offers, participate in loyalty programs, and recommend the product to peers. Instead of investing heavily in campaigns that target strangers, companies that nurture relationships with current customers often see better returns and stronger brand loyalty. In a mature market, where most people already have preferences, this approach can be more sustainable and cost-effective in the long run.`,
+                vocab: [
+                    { word: "acquire", meaning: "획득하다, 얻다", options: ["획득하다, 얻다", "상실하다", "포기하다", "지출하다"] },
+                    { word: "profitability", meaning: "수익성", options: ["수익성", "손실", "생산성", "복잡성"] },
+                    { word: "advocate", meaning: "옹호하다, 지지하다", options: ["옹호하다, 지지하다", "비판하다", "무시하다", "경쟁하다"] },
+                    { word: "loyalty", meaning: "충성도, 의리", options: ["충성도, 의리", "배신", "우유부단", "불만"] },
+                    { word: "nurture", meaning: "육성하다, 가꾸다", options: ["육성하다, 가꾸다", "방치하다", "파괴하다", "단절하다"] },
+                    { word: "mature", meaning: "성숙한", options: ["성숙한", "미숙한", "쇠퇴하는", "불안정한"] },
+                    { word: "sustainable", meaning: "지속 가능한", options: ["지속 가능한", "일회성의", "불안정한", "비효율적인"] },
+                    { word: "incentive", meaning: "혜택, 장려책", options: ["혜택, 장려책", "벌금", "제약", "장애물"] }
+                ],
+                quiz: [
+                    {
+                        q: "신규 고객 확보(Acquiring new customers)의 마케팅적 단점은 무엇인가?",
+                        options: ["브랜드 인지도를 떨어뜨린다.", "광고 및 프로모션에 막대한 비용이 소요된다.", "기존 고객들이 반발한다.", "제품의 품질을 저하시킨다."],
+                        ans: 1
+                    },
+                    {
+                        q: "기존 고객을 잘 관리했을 때 얻는 이점이 아닌 것은?",
+                        options: ["시간이 지날수록 더 많은 지출을 하는 경향이 있다.", "브랜드를 주변인에게 추천할 가능성이 높다.", "신규 고객 획득 비용을 줄여준다.", "항상 새로운 상품 개발 비용을 전액 지원한다."],
+                        ans: 3
+                    },
+                    {
+                        q: "성숙한 시장(mature market)에서 더 지속 가능한 마케팅 전략은?",
+                        options: ["불특정 다수를 향한 공격적 대형 광고", "기존 고객과의 깊은 관계 구축 및 유지", "신규 고객 전용 파격 할인 정책", "경쟁사 고객 빼앗기 투율"],
+                        ans: 1
+                    }
+                ],
+                summaryTask: {
+                    text: "Rather than spending heavily on acquiring new clients, businesses achieve greater profitability and brand loyalty by (A)___________ relationships with (B)___________ customers.",
+                    options: [
+                        { text: "(A) nurturing  -  (B) current", isCorrect: true },
+                        { text: "(A) ignoring  -  (B) new", isCorrect: false },
+                        { text: "(A) building  -  (B) potential", isCorrect: false },
+                        { text: "(A) cutting  -  (B) loyal", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "낯선 사람들을 겨냥한 캠페인에 많이 투자하는 대신, 기존 고객과의 관계를 가꾸는 기업들이 종종 더 나은 수익을 얻는다.",
+                    chunks: ["Instead of investing heavily", "in campaigns", "that target strangers,", "companies that nurture relationships", "with current customers", "often see better returns."],
+                    correctOrder: [0, 1, 2, 3, 4, 5]
+                }
+            },
+            {
+                id: 34,
+                fullText: `Why is it that the world is always represented in such a way that Europe and Asia and North America are at the top, and Australia and Antarctica are at the bottom? This is a matter of convention. While it is logical to use the Earth's two poles as top and bottom of any world map, nothing in nature specifies that the North Pole should be at the top of the map and the South Pole at the bottom. What is now universal practice developed from the work of the earliest cartographers, who lived in the Northern Hemisphere and started at the top of their page. Most of what was to be discovered turned out to lie to the east, west, and south of their abodes, and so Africa, South America, and Australia came to occupy the bottom half of the evolving world map.`,
+                vocab: [
+                    { word: "represent", meaning: "나타내다, 묘사하다", options: ["나타내다", "숨기다", "창조하다", "왜곡하다"] },
+                    { word: "convention", meaning: "관습, 관례", options: ["관습", "법률", "발명", "혁신"] },
+                    { word: "specify", meaning: "명시하다, 지정하다", options: ["명시하다", "애매하게 하다", "생략하다", "부인하다"] },
+                    { word: "cartographer", meaning: "지도 제작자", options: ["지도 제작자", "항해사", "천문학자", "지리학자"] },
+                    { word: "hemisphere", meaning: "반구(지구의 반)", options: ["반구", "적도", "위도", "경도"] },
+                    { word: "abode", meaning: "거주지, 서식지", options: ["거주지", "목적지", "조선소", "경계"] },
+                    { word: "occupy", meaning: "차지하다, 점유하다", options: ["차지하다", "비우다", "파괴하다", "이동하다"] },
+                    { word: "universal", meaning: "보편적인, 전 세계적인", options: ["보편적인", "지역적인", "일시적인", "드문"] }
+                ],
+                quiz: [
+                    {
+                        q: "북극이 지도 위쪽에, 남극이 아래쪽에 오는 것은 무엇에 의한 것인가?",
+                        options: ["지구 자전의 물리적 법칙", "사회적/역사적 관습(convention)", "지구 자장 및 중력의 방향", "유엔(UN)의 공식 지정 규정"],
+                        ans: 1
+                    },
+                    {
+                        q: "초기 지도 제작자들(cartographers)의 특징으로 본문에 언급된 사실은?",
+                        options: ["남반구 출신이었다.", "북반구에 살며 종이의 위쪽부터 그리기 시작했다.", "세계 일주를 마친 후 지도를 그렸다.", "책으로만 지리 지식을 배웠다."],
+                        ans: 1
+                    },
+                    {
+                        q: "아프리카, 남미, 아우스트랄리아가 지도 아래쪽에 위치하게 된 직접적 계기는?",
+                        options: ["유럽인들의 거주지 기준 동, 서, 남쪽에 땅들이 발견되었기 때문", "당시 해당 지역들의 국력이 약했기 때문", "남반구가 북반구보다 면적이 넓기 때문", "해당 대륙들이 실제로 아래로 가라앉고 있었기 때문"],
+                        ans: 0
+                    }
+                ],
+                summaryTask: {
+                    text: "The orientation of modern world maps with North at the top is not a natural law, but a historical (A)___________ established by Northern Hemisphere mapmakers who placed their home regions at the (B)___________ of their maps.",
+                    options: [
+                        { text: "(A) convention  -  (B) top", isCorrect: true },
+                        { text: "(A) law  -  (B) bottom", isCorrect: false },
+                        { text: "(A) discovery  -  (B) center", isCorrect: false },
+                        { text: "(A) theory  -  (B) side", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "현재 보편적인 관행은 북반구에 살면서 페이지의 맨 위에서부터 시작했던 초기 지도 제작자들의 작업에서 발전했다.",
+                    chunks: ["What is now universal practice", "developed from the work", "of the earliest cartographers,", "who lived in the Northern Hemisphere", "and started at the top of their page."],
+                    correctOrder: [0, 1, 2, 3, 4]
+                }
+            },
+            {
+                id: 35,
+                fullText: `The most common phobias involve air travel, animals, closed spaces, heights, and witnessing bloody injury. Exposure to the stimulus almost always provokes an immediate anxiety response and these anxiety responses may include feeling panicky, sweating, and having difficulty breathing. Anxious children are often quiet and well-behaved, and thus frequently go unnoticed by their parents. Because the individual experiences anxiety when confronted with these situations, these types of situations are usually avoided. Impairment to the individual may be minimal if the phobic object is easily avoided, but may be considerable if the phobic object is common and cannot be avoided. Usually, the individual will recognize that their fear is excessive or unreasonable, but may struggle with finding help for treating their phobia.`,
+                vocab: [
+                    { word: "phobia", meaning: "공포증", options: ["공포증", "우울증", "중독", "강박증"] },
+                    { word: "stimulus", meaning: "자극", options: ["자극", "반응", "결과", "원인"] },
+                    { word: "provoke", meaning: "유발하다, 일으키다", options: ["유발하다, 일으키다", "억제하다", "진정시키다", "치료하다"] },
+                    { word: "confront", meaning: "직면하다", options: ["직면하다", "회피하다", "동의하다", "잊다"] },
+                    { word: "impairment", meaning: "(기능적) 장애, 손상", options: ["(기능적) 장애, 손상", "개선", "회복", "향상"] },
+                    { word: "minimal", meaning: "최소한의", options: ["최소한의", "막대한", "심각한", "치명적인"] },
+                    { word: "excessive", meaning: "지나친, 과도한", options: ["지나친, 과도한", "절제된", "적절한", "부족한"] },
+                    { word: "unreasonable", meaning: "비이성적인, 비합리적인", options: ["비이성적인, 비합리적인", "논리적인", "타당한", "현명한"] }
+                ],
+                quiz: [
+                    {
+                        q: "공포 자극(stimulus)에 노출되었을 때 나타나는 신체적 반응이 아닌 것은?",
+                        options: ["공황 상태 느낌", "식은땀", "호흡 곤란", "체온의 감소 및 혈압 안정"],
+                        ans: 3
+                    },
+                    {
+                        q: "공포증 대상이 흔하고 피하기 어려울 때 환자가 겪는 장애(Impairment)의 정도는?",
+                        options: ["미미하다 (minimal)", "상당하다 (considerable)", "전혀 없다", "일시적이다"],
+                        ans: 1
+                    },
+                    {
+                        q: "공포증을 겪는 당사자들의 자신의 공포에 대한 일반적인 인식은?",
+                        options: ["자신의 공포가 지극히 지혜롭다고 생각한다.", "자신의 두려움이 과도하거나 불합리하다는 것을 알고 있다.", "남들도 똑같이 그 공포를 느낀다고 착각한다.", "자신에게 공포증이 있다는 사실을 전혀 모른다."],
+                        ans: 1
+                    }
+                ],
+                summaryTask: {
+                    text: "Phobias trigger immediate anxiety when exposed to specific stimuli, causing individuals to avoid them; although patients realize their fear is (A)___________, avoiding common triggers can cause significant daily (B)___________.",
+                    options: [
+                        { text: "(A) unreasonable  -  (B) impairment", isCorrect: true },
+                        { text: "(A) reasonable  -  (B) benefit", isCorrect: false },
+                        { text: "(A) minimal  -  (B) fear", isCorrect: false },
+                        { text: "(A) natural  -  (B) comfort", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "대개 개인은 자신의 두려움이 과도하거나 불합리하다는 것을 인식하지만, 공포증을 치료하기 위한 도움을 찾는 데 어려움을 겪을 수 있다.",
+                    chunks: ["Usually, the individual", "will recognize that", "their fear is excessive or unreasonable,", "but may struggle with", "finding help for treating their phobia."],
+                    correctOrder: [0, 1, 2, 3, 4]
+                }
+            },
+            {
+                id: 36,
+                fullText: `Culture plays a fundamental role in shaping how individuals learn. From early childhood, people are immersed in cultural practices that influence their behaviors, beliefs, and approaches to acquiring knowledge. The traditions and norms that shape learning, however, are not fixed; rather, they continuously evolve as communities face new realities. As a result, culture acts not simply as a backdrop but as an active force that individuals both inherit and reshape throughout their lives. Schools, in turn, reflect and reinforce broader societal values. Recognizing that culture is deeply embedded in learning processes encourages educators to create environments that honor diverse experiences and support all learners effectively. Fostering respectful and inclusive learning spaces involves more than simply being aware of cultural differences. It requires that teachers thoughtfully interpret learners' actions and needs through a sociocultural lens, continuously adjusting their approaches to respect the dynamic interplay between culture, cognition, and context.`,
+                vocab: [
+                    { word: "immerse", meaning: "몰입시키다, 담그다", options: ["몰입시키다", "분리하다", "제외하다", "배척하다"] },
+                    { word: "evolve", meaning: "진화하다, 발전하다", options: ["진화하다", "퇴보하다", "고정되다", "소멸하다"] },
+                    { word: "backdrop", meaning: "배경", options: ["배경", "주인공", "동력", "결과"] },
+                    { word: "inherit", meaning: "물려받다, 계승하다", options: ["물려받다", "버리다", "거부하다", "증여하다"] },
+                    { word: "reinforce", meaning: "강화하다", options: ["강화하다", "약화시키다", "취소하다", "무시하다"] },
+                    { word: "inclusive", meaning: "포용적인", options: ["포용적인", "배타적인", "폐쇄적인", "편협한"] },
+                    { word: "interplay", meaning: "상호작용", options: ["상호작용", "독립성", "충돌", "단절"] },
+                    { word: "cognition", meaning: "인지", options: ["인지", "감정", "본능", "반사작용"] }
+                ],
+                quiz: [
+                    {
+                        q: "본문에 따르면 문화를 구성하는 전통과 규범의 특징은 어떠한가?",
+                        options: ["고정되어 변하지 않는다.", "새로운 현실에 맞서 지속적으로 진화한다.", "학교 교육을 통해서만 전수된다.", "인지적 능력과 무관하다."],
+                        ans: 1
+                    },
+                    {
+                        q: "문화가 학습에서 하는 역할을 묘사한 표현으로 가장 적절한 것은?",
+                        options: ["단순한 수동적 배경(backdrop)", "물려받고 재형성하는 활발한 동력(active force)", "성적을 결정짓는 유일한 요인", "교사가 통제해야 할 장애물"],
+                        ans: 1
+                    },
+                    {
+                        q: "포용적인 학습 공간을 조성하기 위해 교사에게 요구되는 태도는?",
+                        options: ["모든 학생에게 동일한 엄격한 규율만 적용하기", "사회문화적 관점으로 학생을 이해하며 지속적으로 접근법 조정하기", "문화적 차이를 완전히 무시하기", "지식 전달에만 전념하기"],
+                        ans: 1
+                    }
+                ],
+                summaryTask: {
+                    text: "Culture is an active, evolving force in education, requiring teachers to interpret student needs through a sociocultural lens to foster (A)___________ environments that embrace the dynamic (B)___________ of culture and learning.",
+                    options: [
+                        { text: "(A) inclusive  -  (B) interplay", isCorrect: true },
+                        { text: "(A) rigid  -  (B) separation", isCorrect: false },
+                        { text: "(A) traditional  -  (B) conflict", isCorrect: false },
+                        { text: "(A) exclusive  -  (B) isolation", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "포용적인 학습 공간을 가꾸는 것은 단순히 문화적 차이를 인지하는 것 이상을 포함한다.",
+                    chunks: ["Fostering respectful", "and inclusive learning spaces", "involves more than", "simply being aware of", "cultural differences."],
+                    correctOrder: [0, 1, 2, 3, 4]
+                }
+            },
+            {
+                id: 37,
+                fullText: `Many cave paintings can still be seen today, scratched and painted on the walls of caves. No painter alive now could do better. The animals depicted there don't exist any more. Elephants with long, thick coats of hair and great, curving tusks - woolly mammoths - and other Ice Age animals. Why do you think these prehistoric people painted animals on the walls of caves? Just for decoration? That doesn't seem likely, because the caves were so dark. Of course we can't be sure, but we think they may have been trying to make magic, believing that painting pictures of animals on the walls would make those animals appear. It's rather like when we say "Talk of the devil!" when someone we've been talking about turns up unexpectedly. After all, these animals were their prey, and without them they would starve. So they may have been trying to invent a magic spell.`,
+                vocab: [
+                    { word: "depict", meaning: "그리다, 묘사하다", options: ["그리다", "지우다", "조각하다", "모방하다"] },
+                    { word: "prehistoric", meaning: "선사 시대의", options: ["선사 시대의", "중세의", "현대의", "미래의"] },
+                    { word: "decoration", meaning: "장식", options: ["장식", "주술", "식량", "무기"] },
+                    { word: "prey", meaning: "먹잇감, 사냥감", options: ["먹잇감", "포식자", "가축", "동료"] },
+                    { word: "starve", meaning: "굶주리다", options: ["굶주리다", "배부르다", "번성하다", "생존하다"] },
+                    { word: "unexpectedly", meaning: "뜻밖에, 예상치 못하게", options: ["뜻밖에", "당연히", "의도적으로", "정기적으로"] },
+                    { word: "tusk", meaning: "(코끼리 등의) 엄니, 덧니", options: ["엄니", "발톱", "꼬리", "털"] },
+                    { word: "spell", meaning: "주술, 주문", options: ["주술, 주문", "철자", "시와 노래", "약속"] }
+                ],
+                quiz: [
+                    {
+                        q: "선사시대 사람들이 단지 '장식(decoration)'을 위해 벽화를 그린 것이 아닌 이유는?",
+                        options: ["동굴 안이 너무 어두웠기 때문에", "물감이 너무 부족했기 때문에", "그림을 그리는 것이 금지되었기 때문에", "다른 부족에게 숨기기 위해"],
+                        ans: 0
+                    },
+                    {
+                        q: "학자들이 추정하는 동굴 벽화의 진짜 목적은 무엇인가?",
+                        options: ["부족의 역사를 기록하기 위해", "동물이 나타나게 하는 주술(magic)을 부리기 위해", "어린아이들의 교육을 위해", "동물들의 수량을 파악하기 위해"],
+                        ans: 1
+                    },
+                    {
+                        q: "벽화에 그려진 동물들(매머드 등)이 선사시대 사람들에게 가졌던 의미는?",
+                        options: ["함께 사는 애완동물", "생존에 필수적인 사냥감(prey)", "숭배 대상인 신", "위험한 포식자"],
+                        ans: 1
+                    }
+                ],
+                summaryTask: {
+                    text: "Prehistoric cave paintings of Ice Age animals were likely created not for decoration, but as a (A)___________ spell to ensure the appearance of animals vital for their (B)___________.",
+                    options: [
+                        { text: "(A) magic  -  (B) survival", isCorrect: true },
+                        { text: "(A) scientific  -  (B) trade", isCorrect: false },
+                        { text: "(A) decorative  -  (B) art", isCorrect: false },
+                        { text: "(A) historical  -  (B) religion", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "벽에 동물의 그림을 그리는 것이 그 동물들을 나타나게 해 줄 것이라고 믿으면서 마법을 부리려 했을 수도 있다.",
+                    chunks: ["believing that", "painting pictures of animals on the walls", "would make those animals appear,", "they may have been trying to", "make magic."],
+                    correctOrder: [3, 4, 0, 1, 2]
+                }
+            },
+            {
+                id: 38,
+                fullText: `In today's world, being an expert in a single field is often regarded as the most reliable path to personal and professional success. However, this narrow focus can carry a hidden risk that often goes unnoticed. Specializing too deeply in one area may gradually limit how we understand problems and restrict the range of solutions we consider. This mental trap, known as the Einstellung effect, causes individuals to repeatedly apply familiar strategies - even when those strategies no longer fit the context or yield effective results. Polymaths, or individuals who deliberately build knowledge across fields, avoid this trap by staying curious and open to new tools, ideas, and perspectives. Because they draw on a wide base of knowledge, they are more likely to notice unexpected connections and generate original solutions that narrowly focused experts might easily overlook. In a fast-changing and unpredictable world, this kind of cognitive flexibility is not just an advantage - it has become essential for meaningful innovation, creative thinking, and long-term adaptability.`,
+                vocab: [
+                    { word: "expert", meaning: "전문가", options: ["전문가", "비전문가", "관찰자", "초보자"] },
+                    { word: "deliberately", meaning: "의도적으로, 고의로", options: ["의도적으로", "우연히", "무의식적으로", "급격히"] },
+                    { word: "Einstellung effect", meaning: "아인슈텔룽 효과(익숙한 방식 고수)", options: ["아인슈텔룽 효과", "플라시보 효과", "후광 효과", "피그말리온 효과"] },
+                    { word: "polymath", meaning: "박식가, 다재다능한 사람", options: ["박식가", "전문가", "학학자", "외길 연구자"] },
+                    { word: "overlook", meaning: "간과하다, 못 보고 지나치다", options: ["간과하다", "주장하다", "강조하다", "분석하다"] },
+                    { word: "cognitive", meaning: "인지적인", options: ["인지적인", "신체적인", "감정적인", "언어적인"] },
+                    { word: "flexibility", meaning: "유연성, 융통성", options: ["유연성", "고집", "완고함", "단순함"] },
+                    { word: "innovation", meaning: "혁신", options: ["혁신", "보수", "모방", "정체"] }
+                ],
+                quiz: [
+                    {
+                        q: "한 분야에만 지나치게 전문화될 때 발생하는 부작용(Einstellung effect)은?",
+                        options: ["새로운 문제 해결 능력이 급격히 상승한다.", "익숙한 전략만 반복 적용하여 새로운 해결책을 제한한다.", "타 분야 전문가와 소통이 매우 원활해진다.", "학업 성취도가 저하된다."],
+                        ans: 1
+                    },
+                    {
+                        q: "박식가(Polymath)들이 사고의 함정을 피할 수 있는 비결은?",
+                        options: ["한 우물만 깊게 파는 고집", "다양한 분야의 지식을 바탕으로 호기심과 유연한 관점 유지", "모든 일을 타인에게 위임하는 태도", "기존 법칙을 엄격히 준수함"],
+                        ans: 1
+                    },
+                    {
+                        q: "변화무쌍한 현대 사회에서 '인지적 유연성(cognitive flexibility)'이 주는 이점은?",
+                        options: ["독점적 지위 확보", "의미 있는 혁신과 창의적 사고, 장기적 적응력 제공", "단기적 이윤의 극대화", "실수의 완전한 제거"],
+                        ans: 1
+                    }
+                ],
+                summaryTask: {
+                    text: "To overcome the Einstellung effect caused by narrow specialization, cultivating a wide range of knowledge as a (A)___________ fosters cognitive (B)___________ necessary for creative innovation.",
+                    options: [
+                        { text: "(A) polymath  -  (B) flexibility", isCorrect: true },
+                        { text: "(A) specialist  -  (B) rigidity", isCorrect: false },
+                        { text: "(A) researcher  -  (B) memory", isCorrect: false },
+                        { text: "(A) beginner  -  (B) speed", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "여러 분야에 걸쳐 지식을 의도적으로 쌓는 개인인 박식가들은 호기심을 유지함으로써 이 함정을 피한다.",
+                    chunks: ["Polymaths,", "or individuals who deliberately build knowledge", "across fields,", "avoid this trap", "by staying curious."],
+                    correctOrder: [0, 1, 2, 3, 4]
+                }
+            },
+            {
+                id: 39,
+                fullText: `Americans have a great love for informality and nowhere is this better expressed than in their love for nicknames. Upon greeting strangers for the first time, they will quickly introduce themselves by their nickname. These are shortened forms of their given name at birth and reflect the casual relationships which exist among friends and coworkers. Family names are hardly ever used in daily situations and the use of one's father's last name is saved only for rare and formal occasions. In many traditional cultures, the use of the family name is seen as a sign of respect. For Americans, however, it's the nickname which creates an immediate intimacy between two people. By speaking to another on a first name basis and using his nickname, walls are immediately torn down and equality between two people is established.`,
+                vocab: [
+                    { word: "informality", meaning: "비공식성, 격식 없음", options: ["비공식성, 격식 없음", "엄격함", "격식", "권위"] },
+                    { word: "nickname", meaning: "별명, 애칭", options: ["별명, 애칭", "본명", "성씨", "직함"] },
+                    { word: "given name", meaning: "이름(first name)", options: ["이름(first name)", "성(last name)", "별칭", "세례명"] },
+                    { word: "family name", meaning: "성(last name)", options: ["성(last name)", "이름", "별명", "칭호"] },
+                    { word: "intimacy", meaning: "친밀함", options: ["친밀함", "적개심", "거리감", "경계심"] },
+                    { word: "shortened", meaning: "축소된, 단축된", options: ["축소된, 단축된", "연장된", "복잡한", "원형의"] },
+                    { word: "tear down", meaning: "허물다, 부수다", options: ["허물다, 부수다", "세우다", "유지하다", "은폐하다"] },
+                    { word: "equality", meaning: "평등, 균등", options: ["평등, 균등", "차별", "계급", "불평등"] }
+                ],
+                quiz: [
+                    {
+                        q: "미국인들의 '비공식성에 대한 애정'이 가장 잘 드러나는 부분은?",
+                        options: ["고가의 선물을 주고받는 문화", "처음 만난 사람에게도 별명(nickname)을 소개하는 관습", "악수 대신 절을 하는 관습", "항상 직함을 불러주는 문화"],
+                        ans: 1
+                    },
+                    {
+                        q: "전통적 문화권과 달리 미국 문화에서 성(family name)을 사용하는 때는?",
+                        options: ["매일 친구들을 만날 때", "드물고 격식 있는 공식적인 자리에서만", "직장 동료와 대화할 때", "가족끼리 대화할 때"],
+                        ans: 1
+                    },
+                    {
+                        q: "미국인들이 별명이나 이름을 부름으로써 얻고자 하는 관계적 효과는?",
+                        options: ["상대방에 대한 권위 확립", "경계벽을 허물고 빠른 친밀감과 평등 형성", "상대방의 개인정보 보호", "비즈니스 계약의 신속한 체결"],
+                        ans: 1
+                    }
+                ],
+                summaryTask: {
+                    text: "Unlike traditional cultures that view family names as respect, Americans prefer using (A)___________ to break social barriers and establish immediate (B)___________ and equality.",
+                    options: [
+                        { text: "(A) nicknames  -  (B) intimacy", isCorrect: true },
+                        { text: "(A) family names  -  (B) authority", isCorrect: false },
+                        { text: "(A) titles  -  (B) distance", isCorrect: false },
+                        { text: "(A) official names  -  (B) formality", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "이름과 별명을 사용해 상대방에게 말함으로써, 벽은 즉시 허물어지고 두 사람 사이의 평등이 확립된다.",
+                    chunks: ["By speaking to another", "on a first name basis", "and using his nickname,", "walls are immediately torn down", "and equality between two people is established."],
+                    correctOrder: [0, 1, 2, 3, 4]
+                }
+            },
+            {
+                id: 40,
+                fullText: `In societies where economic opportunities are limited and most people inherit their parents' social and occupational status, authoritarian parenting is often regarded as both practical and necessary. In such environments, parents emphasize obedience, discipline, and respect for authority, believing these traits will best equip their children for the roles they are expected to assume in adulthood. Following rules and conforming to expectations are seen as essential survival strategies. However, in modern economies characterized by career diversity and uncertainty, these traditional parenting strategies become less effective. As a result, parents in more economically developed countries have increasingly begun to question rigid discipline. They are turning instead to parenting approaches that encourage emotional warmth, open communication, and the development of self-directed behavior, hoping to prepare their children for a rapidly changing and competitive world.`,
+                vocab: [
+                    { word: "occupational", meaning: "직업상의", options: ["직업상의", "취미의", "학업의", "가정의"] },
+                    { word: "authoritarian", meaning: "권위주의적인, 엄격한", options: ["권위주의적인", "민주적인", "방임적인", "친절한"] },
+                    { word: "discipline", meaning: "규율, 훈육", options: ["규율, 훈육", "자유", "무질서", "개성"] },
+                    { word: "conform", meaning: "따르다, 순응하다", options: ["순응하다", "반항하다", "이탈하다", "개혁하다"] },
+                    { word: "uncertainty", meaning: "불확실성", options: ["불확실성", "안정성", "확신", "예측가능성"] },
+                    { word: "rigid", meaning: "엄격한, 융통성 없는", options: ["엄격한", "유연한", "자유로운", "온화한"] },
+                    { word: "self-directed", meaning: "자기주도적인", options: ["자기주도적인", "타율적인", "의존적인", "수동적인"] },
+                    { word: "autonomy", meaning: "자율성, 자치", options: ["자율성", "복종", "통제", "구속"] }
+                ],
+                quiz: [
+                    {
+                        q: "과거 경제 기회가 제한적인 사회에서 '권위주의적 양육(authoritarian parenting)'이 수용된 이유는?",
+                        options: ["자녀의 창의성을 높이기 위해", "부모의 직업과 신분을 물려받는 환경에서 복종과 규율이 생존에 유용했기 때문", "정부의 강력한 법적 규제 때문에", "학업 성취도를 높이기 위한 유일한 방법이라서"],
+                        ans: 1
+                    },
+                    {
+                        q: "다양성과 불확실성이 특징인 현대 경제에서 전통적 양육 전략의 평가 변화는?",
+                        options: ["더욱 효과적이고 필수적인 전략이 되었다.", "효과성이 떨어져 엄격한 규율에 대한 의문이 제기되고 있다.", "완전히 법적으로 금지되었다.", "세계 공통의 유일한 정답으로 자리잡았다."],
+                        ans: 1
+                    },
+                    {
+                        q: "현대 사회 부모들이 선호하는 새로운 양육 방식의 핵심 요소는?",
+                        options: ["무조건적인 복종과 처벌", "정서적 온기, 열린 소통, 자기주도적 행동의 개발", "철저한 간섭과 결정 대행", "경쟁을 피하는 방임적 태도"],
+                        ans: 1
+                    }
+                ],
+                summaryTask: {
+                    text: "In response to changes in the economy and career landscape, parenting styles are shifting from (A)___________ approaches that stress obedience and discipline to (B)___________ ones that foster autonomy and emotional support.",
+                    options: [
+                        { text: "(A) strict  -  (B) supportive", isCorrect: true },
+                        { text: "(A) permissive  -  (B) strict", isCorrect: false },
+                        { text: "(A) democratic  -  (B) restrictive", isCorrect: false },
+                        { text: "(A) generous  -  (B) structured", isCorrect: false }
+                    ]
+                },
+                chunkTask: {
+                    kor: "그들은 변화하는 세상에 자녀를 대비시키기 위해 정서적 온기와 자기주도적 행동의 개발을 장려하는 접근법으로 돌아서고 있다.",
+                    chunks: ["They are turning instead to", "parenting approaches", "that encourage emotional warmth", "and the development of self-directed behavior,", "hoping to prepare their children", "for a rapidly changing world."],
+                    correctOrder: [0, 1, 2, 3, 4, 5]
+                }
+            }
+        ];
+
+        /* ------------------------------------------------------------------
+           APP STATE VARIABLES
+        ------------------------------------------------------------------ */
+        let currentUser = { id: '', name: '' };
+        let currentPassage = null;
+        let currentStage = 1;
+
+        // Stage 1 State
+        let s1Index = 0;
+        let s1Score = 0;
+        let s1Timer = null;
+        let s1TimeLeft = 10;
+
+        // Stage 2 State
+        let s2Index = 0;
+        let s2Score = 0;
+        let s2Timer = null;
+        let s2TimeLeft = 300; // 5 min
+
+        // Stage 3 State
+        let s3Score = 0;
+
+        // Stage 4 State
+        let s4SelectedIndices = [];
+        let s4ShuffledIndices = []; // 섞인 청크 순서를 저장하는 변수 추가
+        let s4AttemptsLeft = 3;
+        let s4Score = 0;
+        let s4Timer = null;
+        let s4TimeLeft = 120; // 2 min
+
+        // Global Scores database in localStorage
+        let scoresDb = JSON.parse(localStorage.getItem('rb_scores') || '[]');
+
+        /* ------------------------------------------------------------------
+           AUDIO SYNTHESIS (Web Audio API) & BGM SYNTH
+        ------------------------------------------------------------------ */
+        let audioCtx = null;
+        let bgmInterval = null;
+        let isBgmOn = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Sound FX Generators
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now); // A3
+                    osc.frequency.exponentialRampToValueAtTime(130.81, now + 0.2); // C3
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'complete') {
+                    // Fanfare
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.value = freq;
+                        g.gain.setValueAtTime(0.2, now + idx * 0.1);
+                        g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+                        o.start(now + idx * 0.1);
+                        o.stop(now + idx * 0.1 + 0.3);
+                    });
+                }
+            } catch (e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        // BGM Synthesizer Loop
+        function startBGM() {
+            if (bgmInterval || !isBgmOn) return;
+            initAudio();
+
+            const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23, 392.00, 493.88]; // C, E, G, C, A, F, G, B
+            let noteIdx = 0;
+
+            bgmInterval = setInterval(() => {
+                if (!isBgmOn || !audioCtx) return;
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = notes[noteIdx % notes.length];
+                    gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.4);
+
+                    noteIdx++;
+                } catch(e) {}
+            }, 500);
+        }
+
+        function stopBGM() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        function toggleBGM() {
+            isBgmOn = !isBgmOn;
+            const btnText = document.getElementById('bgmText');
+            const btnIcon = document.getElementById('bgmIcon');
+            if (isBgmOn) {
+                btnText.innerText = "BGM ON";
+                btnIcon.className = "fa-solid fa-music text-purple-500";
+                startBGM();
+                showToast("BGM이 켜졌습니다.", "info");
+            } else {
+                btnText.innerText = "BGM OFF";
+                btnIcon.className = "fa-solid fa-volume-xmark text-slate-400";
+                stopBGM();
+                showToast("BGM이 꺼졌습니다.", "info");
+            }
+        }
+
+        // Speech Synthesis (Native Voice Audio)
+        function speakWord() {
+            if (!currentPassage) return;
+            const word = currentPassage.vocab[s1Index].word;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                showToast("이 브라우저는 음성 재생을 지원하지 않습니다.", "error");
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           TOAST NOTIFICATION
+        ------------------------------------------------------------------ */
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+
+            if (type === "success") {
+                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 px-5 py-3 rounded-2xl shadow-xl font-bold text-sm flex items-center gap-3 bg-emerald-600 text-white";
+                toastIcon.className = "fa-solid fa-circle-check";
+            } else if (type === "error") {
+                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 px-5 py-3 rounded-2xl shadow-xl font-bold text-sm flex items-center gap-3 bg-rose-600 text-white";
+                toastIcon.className = "fa-solid fa-triangle-exclamation";
+            } else {
+                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 px-5 py-3 rounded-2xl shadow-xl font-bold text-sm flex items-center gap-3 bg-slate-800 text-white";
+                toastIcon.className = "fa-solid fa-info-circle";
+            }
+
+            setTimeout(() => {
+                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-5 py-3 rounded-2xl shadow-xl font-bold text-sm flex items-center gap-3";
+            }, 2500);
+        }
+
+        /* ------------------------------------------------------------------
+           USER REGISTRATION & HOME NAVIGATION
+        ------------------------------------------------------------------ */
+        function saveUserInfo() {
+            const idInput = document.getElementById('studentId').value.trim();
+            const nameInput = document.getElementById('studentName').value.trim();
+
+            if (!idInput || !nameInput) {
+                showToast("학번과 이름을 모두 입력해주세요.", "error");
+                return;
+            }
+
+            currentUser.id = idInput;
+            currentUser.name = nameInput;
+
+            document.getElementById('displayStudentId').innerText = currentUser.id;
+            document.getElementById('displayStudentName').innerText = currentUser.name;
+
+            document.getElementById('userModal').classList.add('hidden');
+            document.getElementById('userInfoBar').classList.remove('hidden');
+
+            showToast(`${currentUser.name} 학생, 환영합니다!`, "success");
+            startBGM();
+        }
+
+        function editUserInfo() {
+            document.getElementById('userModal').classList.remove('hidden');
+            document.getElementById('userInfoBar').classList.add('hidden');
+        }
+
+        function goHome() {
+            clearIntervals();
+            document.getElementById('selectionScreen').classList.remove('hidden');
+            document.getElementById('activityScreen').classList.add('hidden');
+            document.getElementById('dashboardScreen').classList.add('hidden');
+            renderPassageGrid();
+        }
+
+        function renderPassageGrid() {
+            const grid = document.getElementById('passageGrid');
+            grid.innerHTML = '';
+
+            passageData.forEach(p => {
+                // Find existing scores for student
+                const userRecord = scoresDb.find(s => s.studentId === currentUser.id && s.passageId === p.id);
+                const isCompleted = userRecord && userRecord.s4 >= 0;
+
+                const card = document.createElement('div');
+                card.className = "glass-card p-6 rounded-3xl space-y-4 border border-white/80 hover:shadow-lg transition cursor-pointer flex flex-col justify-between";
+                card.onclick = () => startPassageActivity(p.id);
+
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="px-3.5 py-1 bg-purple-100 text-purple-700 font-extrabold text-sm rounded-full">지문 ${p.id}번</span>
+                            ${isCompleted ? '<span class="text-xs font-bold text-emerald-600 bg-emerald-100 px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-check mr-1"></i>완료</span>' : '<span class="text-xs font-bold text-slate-400">미완료</span>'}
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 text-lg">지문 ${p.id}번 독해 챌린지</h3>
+                    </div>
+                    <div class="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs font-bold text-purple-600">
+                        <span>학습 시작하기</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        /* ------------------------------------------------------------------
+           PASSAGE ACTIVITY WORKFLOW
+        ------------------------------------------------------------------ */
+        function startPassageActivity(passageId) {
+            if (!currentUser.id) {
+                showToast("상단에서 학번과 이름을 먼저 입력하세요!", "error");
+                return;
+            }
+
+            currentPassage = passageData.find(p => p.id === passageId);
+            document.getElementById('activePassageTitle').innerText = `${currentPassage.id}번 지문 챌린지`;
+
+            document.getElementById('selectionScreen').classList.add('hidden');
+            document.getElementById('activityScreen').classList.remove('hidden');
+
+            // Reset Scores
+            s1Score = 0;
+            s2Score = 0;
+            s3Score = 0;
+            s4Score = 0;
+
+            loadStage(1);
+        }
+
+        function clearIntervals() {
+            if (s1Timer) clearInterval(s1Timer);
+            if (s2Timer) clearInterval(s2Timer);
+            if (s4Timer) clearInterval(s4Timer);
+        }
+
+        function updateStageIndicators(stageNum) {
+            for (let i = 1; i <= 4; i++) {
+                const ind = document.getElementById(`stageIndicator${i}`);
+                if (i === stageNum) {
+                    ind.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-sm";
+                } else if (i < stageNum) {
+                    ind.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-700";
+                } else {
+                    ind.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-white/60 text-slate-400";
+                }
+            }
+        }
+
+        function loadStage(stageNum) {
+            currentStage = stageNum;
+            clearIntervals();
+            updateStageIndicators(stageNum);
+
+            document.getElementById('stage1View').classList.add('hidden');
+            document.getElementById('stage2View').classList.add('hidden');
+            document.getElementById('stage3View').classList.add('hidden');
+            document.getElementById('stage4View').classList.add('hidden');
+
+            if (stageNum === 1) {
+                document.getElementById('stageBadge').innerText = "Stage 1 • 어휘 타임어택";
+                document.getElementById('stage1View').classList.remove('hidden');
+                initStage1();
+            } else if (stageNum === 2) {
+                document.getElementById('stageBadge').innerText = "Stage 2 • 독해 및 내용파악";
+                document.getElementById('stage2View').classList.remove('hidden');
+                initStage2();
+            } else if (stageNum === 3) {
+                document.getElementById('stageBadge').innerText = "Stage 3 • 요약문 빈칸 완성";
+                document.getElementById('stage3View').classList.remove('hidden');
+                initStage3();
+            } else if (stageNum === 4) {
+                document.getElementById('stageBadge').innerText = "Stage 4 • 짧은 청킹 순서 배열";
+                document.getElementById('stage4View').classList.remove('hidden');
+                initStage4();
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           STAGE 1: VOCABULARY TIME ATTACK (10 SEC PER WORD)
+        ------------------------------------------------------------------ */
+        function initStage1() {
+            s1Index = 0;
+            s1Score = 0;
+            renderStage1Question();
+        }
+
+        function renderStage1Question() {
+            if (s1Index >= currentPassage.vocab.length) {
+                playSound('complete');
+                showToast(`Stage 1 완료! (점수: ${s1Score} / 80)`, "success");
+                setTimeout(() => loadStage(2), 1200);
+                return;
+            }
+
+            const item = currentPassage.vocab[s1Index];
+            document.getElementById('s1Progress').innerText = `${s1Index + 1} / ${currentPassage.vocab.length}`;
+            document.getElementById('s1Word').innerText = item.word;
+
+            // Auto Speak
+            setTimeout(speakWord, 300);
+
+            // Options
+            const container = document.getElementById('s1Options');
+            container.innerHTML = '';
+
+            // Shuffle options
+            const shuffledOptions = [...item.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-4 rounded-2xl glass-btn text-left font-bold text-slate-700 text-sm hover:bg-purple-50 hover:text-purple-700 transition flex items-center justify-between";
+                btn.innerText = opt;
+                btn.onclick = () => checkStage1Answer(opt, item.meaning);
+                container.appendChild(btn);
+            });
+
+            // Start 10s Timer
+            s1TimeLeft = 10;
+            updateTimerDisplay(s1TimeLeft);
+
+            if (s1Timer) clearInterval(s1Timer);
+            s1Timer = setInterval(() => {
+                s1TimeLeft--;
+                updateTimerDisplay(s1TimeLeft);
+
+                if (s1TimeLeft <= 0) {
+                    clearInterval(s1Timer);
+                    playSound('wrong');
+                    showToast("10초 시간 초과! 다시 시도하세요.", "error");
+                    // Immediate retry challenge
+                    setTimeout(renderStage1Question, 1000);
+                }
+            }, 1000);
+        }
+
+        function checkStage1Answer(selected, correct) {
+            clearInterval(s1Timer);
+
+            if (selected === correct) {
+                playSound('correct');
+                s1Score += 10;
+                showToast("정답입니다!", "success");
+                s1Index++;
+                setTimeout(renderStage1Question, 800);
+            } else {
+                playSound('wrong');
+                showToast("오답입니다! 다시 시도하세요.", "error");
+                // Immediate retry challenge on same question
+                setTimeout(renderStage1Question, 1000);
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           STAGE 2: PASSAGE READING & 3 COMPREHENSION QUIZZES (5 MIN)
+        ------------------------------------------------------------------ */
+        function initStage2() {
+            s2Index = 0;
+            s2Score = 0;
+            document.getElementById('s2PassageContent').innerText = currentPassage.fullText;
+
+            // Start 5 Minute Timer
+            s2TimeLeft = 300;
+            updateTimerDisplay(s2TimeLeft, true);
+
+            if (s2Timer) clearInterval(s2Timer);
+            s2Timer = setInterval(() => {
+                s2TimeLeft--;
+                updateTimerDisplay(s2TimeLeft, true);
+
+                if (s2TimeLeft <= 0) {
+                    clearInterval(s2Timer);
+                    playSound('wrong');
+                    showToast("Stage 2 제한시간이 종료되었습니다.", "error");
+                    setTimeout(() => loadStage(3), 1200);
+                }
+            }, 1000);
+
+            renderStage2Quiz();
+        }
+
+        function renderStage2Quiz() {
+            if (s2Index >= currentPassage.quiz.length) {
+                clearInterval(s2Timer);
+                playSound('complete');
+                showToast(`Stage 2 완료! (점수: ${s2Score} / 30)`, "success");
+                setTimeout(() => loadStage(3), 1200);
+                return;
+            }
+
+            const quizItem = currentPassage.quiz[s2Index];
+            document.getElementById('s2QuizProgress').innerText = `문제 ${s2Index + 1} / ${currentPassage.quiz.length}`;
+            document.getElementById('s2QuestionText').innerText = `Q${s2Index + 1}. ${quizItem.q}`;
+
+            const container = document.getElementById('s2Options');
+            container.innerHTML = '';
+
+            quizItem.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-3.5 rounded-2xl glass-btn text-left text-xs sm:text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition";
+                btn.innerText = `${idx + 1}) ${opt}`;
+                btn.onclick = () => checkStage2Answer(idx, quizItem.ans);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkStage2Answer(selectedIdx, correctIdx) {
+            if (selectedIdx === correctIdx) {
+                playSound('correct');
+                s2Score += 10;
+                showToast("정답입니다!", "success");
+            } else {
+                playSound('wrong');
+                showToast("오답입니다.", "error");
+            }
+
+            s2Index++;
+            setTimeout(renderStage2Quiz, 800);
+        }
+
+        /* ------------------------------------------------------------------
+           STAGE 3: PARAGRAPH SUMMARY BLANK FILLING
+        ------------------------------------------------------------------ */
+        function initStage3() {
+            s3Score = 0;
+            const task = currentPassage.summaryTask;
+            document.getElementById('s3SummaryText').innerText = task.text;
+
+            const container = document.getElementById('s3Options');
+            container.innerHTML = '';
+
+            task.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-4 rounded-2xl glass-btn text-left font-bold text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition";
+                btn.innerText = opt.text;
+                btn.onclick = () => checkStage3Answer(opt.isCorrect);
+                container.appendChild(btn);
+            });
+
+            // Set simple timer display
+            document.getElementById('timerText').innerText = "자유 시간";
+        }
+
+        function checkStage3Answer(isCorrect) {
+            if (isCorrect) {
+                playSound('correct');
+                s3Score = 20;
+                showToast("정답입니다! 요약문을 완벽하게 이해하셨습니다.", "success");
+            } else {
+                playSound('wrong');
+                s3Score = 0;
+                showToast("아쉽습니다. 오답입니다.", "error");
+            }
+
+            setTimeout(() => loadStage(4), 1200);
+        }
+
+        /* ------------------------------------------------------------------
+           STAGE 4: SHORT CHUNKING DRAG & DROP (2 MIN, 2 RETRIES)
+        ------------------------------------------------------------------ */
+        function initStage4() {
+            s4SelectedIndices = [];
+            s4AttemptsLeft = 3;
+            s4Score = 0;
+
+            const task = currentPassage.chunkTask;
+            document.getElementById('s4KoreanTranslation').innerText = task.kor;
+            document.getElementById('s4Attempts').innerText = `시도 ${4 - s4AttemptsLeft}/3`;
+
+            // 청크 인덱스들을 무작위(Random Shuffle)로 섞음
+            s4ShuffledIndices = task.chunks.map((_, idx) => idx).sort(() => Math.random() - 0.5);
+
+            // Start 2 Min Timer
+            s4TimeLeft = 120;
+            updateTimerDisplay(s4TimeLeft, true);
+
+            if (s4Timer) clearInterval(s4Timer);
+            s4Timer = setInterval(() => {
+                s4TimeLeft--;
+                updateTimerDisplay(s4TimeLeft, true);
+
+                if (s4TimeLeft <= 0) {
+                    clearInterval(s4Timer);
+                    playSound('wrong');
+                    showToast("Stage 4 제한시간 초과!", "error");
+                    finishAllStages();
+                }
+            }, 1000);
+
+            renderStage4Zones();
+        }
+
+        function renderStage4Zones() {
+            const task = currentPassage.chunkTask;
+            const sourceZone = document.getElementById('s4SourceZone');
+            const dropZone = document.getElementById('s4DropZone');
+
+            sourceZone.innerHTML = '';
+            dropZone.innerHTML = '';
+
+            // Render selected chunks in DropZone
+            if (s4SelectedIndices.length === 0) {
+                dropZone.innerHTML = '<span class="text-xs text-slate-400 italic" id="s4Placeholder">아래 청크들을 순서대로 클릭하세요...</span>';
+            } else {
+                s4SelectedIndices.forEach((chunkIdx) => {
+                    const el = document.createElement('div');
+                    el.className = "chunk-box px-3 py-2 bg-purple-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm cursor-pointer hover:bg-purple-700 transition flex items-center gap-2";
+                    el.innerHTML = `<span>${task.chunks[chunkIdx]}</span> <i class="fa-solid fa-xmark text-xs opacity-70"></i>`;
+                    el.onclick = () => deselectChunk(chunkIdx);
+                    dropZone.appendChild(el);
+                });
+            }
+
+            // Render remaining chunks in SourceZone using the shuffled order
+            s4ShuffledIndices.forEach((idx) => {
+                if (!s4SelectedIndices.includes(idx)) {
+                    const el = document.createElement('div');
+                    el.className = "chunk-box px-3 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold shadow-sm cursor-pointer hover:bg-purple-50 hover:border-purple-300 transition";
+                    el.innerText = task.chunks[idx];
+                    el.onclick = () => selectChunk(idx);
+                    sourceZone.appendChild(el);
+                }
+            });
+        }
+
+        function selectChunk(idx) {
+            s4SelectedIndices.push(idx);
+            renderStage4Zones();
+        }
+
+        function deselectChunk(idx) {
+            s4SelectedIndices = s4SelectedIndices.filter(i => i !== idx);
+            renderStage4Zones();
+        }
+
+        function resetStage4() {
+            s4SelectedIndices = [];
+            renderStage4Zones();
+        }
+
+        function checkStage4() {
+            const task = currentPassage.chunkTask;
+
+            if (s4SelectedIndices.length !== task.chunks.length) {
+                showToast("모든 청크 조각을 배치해 주세요!", "error");
+                return;
+            }
+
+            // Check order matching
+            let isCorrect = true;
+            for (let i = 0; i < task.correctOrder.length; i++) {
+                if (s4SelectedIndices[i] !== task.correctOrder[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            if (isCorrect) {
+                clearInterval(s4Timer);
+                playSound('complete');
+                s4Score = 30;
+                showToast("완벽합니다! 청킹 순서를 정확히 맞추셨습니다.", "success");
+                setTimeout(finishAllStages, 1200);
+            } else {
+                playSound('wrong');
+                s4AttemptsLeft--;
+
+                if (s4AttemptsLeft > 0) {
+                    showToast(`오답입니다. (남은 기회: ${s4AttemptsLeft}회)`, "error");
+                    document.getElementById('s4Attempts').innerText = `시도 ${4 - s4AttemptsLeft}/3`;
+                    resetStage4();
+                } else {
+                    clearInterval(s4Timer);
+                    showToast("2회 재시도 실패. 정답 순서로 자동 배치 후 다음 단계로 이동합니다.", "error");
+                    // Auto reveal answer
+                    s4SelectedIndices = [...task.correctOrder];
+                    renderStage4Zones();
+                    setTimeout(finishAllStages, 2500);
+                }
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           COMPLETE ALL STAGES & SAVE SCORE
+        ------------------------------------------------------------------ */
+        function finishAllStages() {
+            clearIntervals();
+
+            const totalScore = s1Score + s2Score + s3Score + s4Score;
+
+            // Save result to LocalStorage
+            const record = {
+                studentId: currentUser.id,
+                studentName: currentUser.name,
+                passageId: currentPassage.id,
+                s1: s1Score,
+                s2: s2Score,
+                s3: s3Score,
+                s4: s4Score,
+                total: totalScore,
+                timestamp: new Date().toLocaleString()
+            };
+
+            // Remove existing record for same student and passage
+            scoresDb = scoresDb.filter(s => !(s.studentId === currentUser.id && s.passageId === currentPassage.id));
+            scoresDb.push(record);
+            localStorage.setItem('rb_scores', JSON.stringify(scoresDb));
+
+            playSound('complete');
+            showToast(`축하합니다! ${currentPassage.id}번 지문 챌린지 완료 (총점: ${totalScore}점)`, "success");
+
+            setTimeout(goHome, 2000);
+        }
+
+        /* ------------------------------------------------------------------
+           TIMER HELPER
+        ------------------------------------------------------------------ */
+        function updateTimerDisplay(seconds, isFormatted = false) {
+            const textEl = document.getElementById('timerText');
+            const container = document.getElementById('timerContainer');
+
+            if (seconds <= 5 && seconds >= 0) {
+                container.classList.add('timer-warning');
+            } else {
+                container.classList.remove('timer-warning');
+            }
+
+            if (isFormatted) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                textEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            } else {
+                textEl.innerText = `${seconds}초`;
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           TEACHER DASHBOARD & GOOGLE CLASSROOM SYNC
+        ------------------------------------------------------------------ */
+        function openDashboard() {
+            document.getElementById('selectionScreen').classList.add('hidden');
+            document.getElementById('activityScreen').classList.add('hidden');
+            document.getElementById('dashboardScreen').classList.remove('hidden');
+
+            renderDashboardTable();
+        }
+
+        function renderDashboardTable() {
+            const tbody = document.getElementById('dashboardTableBody');
+            tbody.innerHTML = '';
+
+            if (scoresDb.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="p-4 text-center text-slate-400">등록된 성적 데이터가 없습니다.</td></tr>';
+                return;
+            }
+
+            scoresDb.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold">${r.studentId}</td>
+                    <td class="p-3 font-semibold">${r.studentName}</td>
+                    <td class="p-3 font-bold text-purple-600">${r.passageId}번</td>
+                    <td class="p-3 text-center">${r.s1}점</td>
+                    <td class="p-3 text-center">${r.s2}점</td>
+                    <td class="p-3 text-center">${r.s3}점</td>
+                    <td class="p-3 text-center">${r.s4}점</td>
+                    <td class="p-3 text-center font-extrabold text-emerald-600">${r.total}점</td>
+                    <td class="p-3 text-center text-xs text-slate-400">${r.timestamp}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportCSV() {
+            if (scoresDb.length === 0) {
+                showToast("내보낼 성적 데이터가 없습니다.", "error");
+                return;
+            }
+
+            let csv = "\uFEFF학번,이름,지문번호,Stage1,Stage2,Stage3,Stage4,총점,완료시간\n";
+            scoresDb.forEach(r => {
+                csv += `"${r.studentId}","${r.studentName}","${r.passageId}번",${r.s1},${r.s2},${r.s3},${r.s4},${r.total},"${r.timestamp}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `reading_booster_scores_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("CSV 성적 파일이 다운로드되었습니다.", "success");
+        }
+
+        function shareGoogleClassroom() {
+            const shareUrl = encodeURIComponent(window.location.href);
+            const title = encodeURIComponent("Reading Booster 영어독해 모의고사 31~40번 챌린지 성적 제출");
+            const googleClassroomUrl = `https://classroom.google.com/share?url=${shareUrl}&title=${title}`;
+            window.open(googleClassroomUrl, '_blank', 'width=600,height=600');
+        }
+
+        /* ------------------------------------------------------------------
+           INIT ON LOAD
+        ------------------------------------------------------------------ */
+        window.onload = function() {
+            renderPassageGrid();
+        };
+    </script>
+</body>
+</html>
